@@ -3,8 +3,18 @@ from Crypto.Signature import PKCS1_PSS
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.Hash import SHA256
 
-# Generate key pairs which can be used for signing and verifying
+clients_dict = {}
+number_of_clients = 0
+
+# Generate key pairs which can be used for signing and verifying,
+# plus generate client id for new client
 def generate_keypair():
+    global clients_dict
+    global number_of_clients
+
+    new_client_id = "CID" + str(number_of_clients)
+    number_of_clients = number_of_clients + 1
+
     new_key = RSA.generate(2048, e=65537)
     private_key = new_key
     public_key = new_key.publickey()
@@ -20,18 +30,21 @@ def generate_keypair():
     public_key_file.write(public_key)
     public_key_file.close()
 
-    return private_key, public_key
+    clients_dict[new_client_id] = (private_key, public_key)
+
+    return new_client_id, private_key, public_key
 
 # Generate n keypairs and put them in a list
 def generate_keys(n):
     keys_list = []
 
     for x in range(n):
-        private_key, public_key = generate_keypair()
-        keys_list.append((private_key, public_key))
+        client_id, private_key, public_key = generate_keypair()
+        keys_list.append((client_id, private_key, public_key))
 
     return keys_list
 
+# Sign message with private key
 def sign_message(private_key, message):
     h = SHA256.new(message.encode("utf8"))
     signer = PKCS1_PSS.new(private_key)
@@ -39,6 +52,7 @@ def sign_message(private_key, message):
 
     return signature
 
+# Verify signature with public key
 def verify_signature(public_key, signature, h):
     verifier = PKCS1_PSS.new(public_key)
     if verifier.verify(h, signature):
@@ -48,12 +62,14 @@ def verify_signature(public_key, signature, h):
         print("Signature invalid :(")
         return False
 
+# Encrypt message with public key
 def encrypt_message(public_key, message):
     cipher = PKCS1_OAEP.new(public_key, SHA256)
     ciphertext = cipher.encrypt(message)
 
     return ciphertext
 
+# Decrypt message with private key
 def decrypt_message(private_key, ciphertext):
     cipher = PKCS1_OAEP.new(private_key, SHA256)
     plaintext = cipher.decrypt(ciphertext)
@@ -69,7 +85,8 @@ def distribute(keys_tuple, client_pk, consultant_private_key):
     for keys in keys_tuple:
         message = encrypt_message(client_pk, keys)
         signature = sign_message(consultant_private_key, message)
-        # send to client
+        # send the client s keypair with client_id (signature) to client
+        # send (client_id, public_key) to server
 
 
 # # Testing the generated keys for signing and verifying
