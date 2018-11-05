@@ -10,16 +10,15 @@ def generate_keypair():
     public_key = new_key.publickey()
 
     # In case we want to save the keys to files:
+    private_key = new_key.exportKey("PEM")
+    public_key = new_key.publickey().exportKey("PEM")
+    private_key_file = open("private_key.pem", "wb")
+    private_key_file.write(private_key)
+    private_key_file.close()
 
-    # private_key = new_key.exportKey("PEM")
-    # public_key = new_key.publickey().exportKey("PEM")
-    # private_key_file = open("private_key.pem", "wb")
-    # private_key_file.write(private_key)
-    # private_key_file.close()
-    #
-    # public_key_file = open("public_key.pem", "wb")
-    # public_key_file.write(public_key)
-    # public_key_file.close()
+    public_key_file = open("public_key.pem", "wb")
+    public_key_file.write(public_key)
+    public_key_file.close()
 
     return private_key, public_key
 
