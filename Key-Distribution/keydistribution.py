@@ -65,8 +65,12 @@ def decrypt_message(private_key, ciphertext):
 # the Consultant can encrypt the generated public/private key-pair for the Client,
 # (which will be used for signing (private key), and verifying (public key) the signature)
 # and send it to the Client.
-def distribute(keys_tuple, client_pk):
-    pass
+def distribute(keys_tuple, client_pk, consultant_private_key):
+    for keys in keys_tuple:
+        message = encrypt_message(client_pk, keys)
+        signature = sign_message(consultant_private_key, message)
+        # send to client
+
 
 # # Testing the generated keys for signing and verifying
 # private_key, public_key = generate_keypair()
