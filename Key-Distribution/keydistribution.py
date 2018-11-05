@@ -6,7 +6,7 @@ from Crypto.Hash import SHA256
 clients_dict = {}
 number_of_clients = 0
 
-# Generate key pairs which can be used for signing and verifying,
+# Generate key pairs which can be used for signing and verifying (for the Client),
 # plus generate client id for new client
 def generate_keypair():
     global clients_dict
@@ -22,11 +22,13 @@ def generate_keypair():
     # In case we want to save the keys to files:
     private_key = new_key.exportKey("PEM")
     public_key = new_key.publickey().exportKey("PEM")
-    private_key_file = open("private_key.pem", "wb")
+    private_key_filename = "private_key_" + str(new_client_id) + ".pem"
+    private_key_file = open(private_key_filename, "wb")
     private_key_file.write(private_key)
     private_key_file.close()
 
-    public_key_file = open("public_key.pem", "wb")
+    public_key_filename = "public_key_" + str(new_client_id) + ".pem"
+    public_key_file = open(public_key_filename, "wb")
     public_key_file.write(public_key)
     public_key_file.close()
 
@@ -43,6 +45,26 @@ def generate_keys(n):
         keys_list.append((client_id, private_key, public_key))
 
     return keys_list
+
+# Generate public/private keypair used for encrypting and decrypting messages (used for key distribution)
+# Will be called by the Consultant and Client only once.
+def generate_keypair_pke():
+    new_key = RSA.generate(2048, e=65537)
+    private_key = new_key
+    public_key = new_key.publickey()
+
+    # In case we want to save the keys to files:
+    private_key = new_key.exportKey("PEM")
+    public_key = new_key.publickey().exportKey("PEM")
+    private_key_file = open("private_key.pem", "wb")
+    private_key_file.write(private_key)
+    private_key_file.close()
+
+    public_key_file = open("public_key.pem", "wb")
+    public_key_file.write(public_key)
+    public_key_file.close()
+
+    return private_key, public_key
 
 # Sign message with private key
 def sign_message(private_key, message):
