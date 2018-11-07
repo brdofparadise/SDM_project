@@ -15,7 +15,8 @@ import binascii
 import os
 #get k1 and k2 generated during encryption phase from csv file
 k_1,k_2 = None, None
-with open('example2.csv', newline='') as File:  
+i = 0
+with open('keysandsi.csv', newline='') as File:  
     reader = csv.reader(File,delimiter=',')
     for row in reader:
         #print(row)
@@ -23,6 +24,7 @@ with open('example2.csv', newline='') as File:
         k_2 = row[1]
         print (k_1)
         print (k_2)
+        break
 #with open('example2.csv', newline='') as File:  
 #    reader = csv.reader(File,delimiter=',')
 #    for row in reader:
@@ -33,8 +35,7 @@ k_2 = binascii.unhexlify(k_2)
 k_1 = binascii.unhexlify(k_1)
 
 #Wj is the plaintext we need to search
-
-W_j= b'I\x90\xe2_\x94\xc4]\x81\xb0\xd4l\x14\xc0\x00\t\x03'
+W_j= b'\x1eQ\xf6\x92\x04f\x9bL;5&\x92x\xaf\xa2\xb2'
 k_2 = os.urandom(4).hex()
 des = DES.new(k_2, DES.MODE_ECB)
 X_j = des.encrypt(W_j)
