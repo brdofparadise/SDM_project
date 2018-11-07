@@ -5,8 +5,10 @@ import hmac
 import csv
 from Crypto import Random
 
-a = os.urandom(16)							# Generated 16 byte Plain Text Block
-b = binascii.hexlify(a)
+a = os.urandom(32)							# Generated 16 byte Plain Text Block
+print ("full PT",a)
+print ("first 8 bytes ", a[0:8])
+#b = binascii.hexlify(a)
 
 #b = hex(a)
 #b= bytes(a, "hex")
@@ -19,19 +21,20 @@ k_2 = os.urandom(8)									#Getting the hash working
 k_1 = os.urandom(8)
 
 ##store k1 and k2 in a csv file
+#keys = [binascii.hexlify(k_1),binascii.hexlify(k_2)]
 keys = [k_1.hex(),k_2.hex()]
 myFile = open('example2.csv', 'w', newline='')
 with myFile:
     writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(keys)
 
-for plain_fragment in ([b[i:i+8] for i in range(0, len(b), 8)]):
+for plain_fragment in ([a[i:i+8] for i in range(0, len(a), 8)]):
     s_i = os.urandom(8)
     #print (plain_fragment)
     des = DES.new(k_2, DES.MODE_ECB)
     cipher_fragment = des.encrypt(plain_fragment)
     #print (len(cipher_fragment))
-    L_i = cipher_fragment[0:int(len(b)/2)]
+    L_i = cipher_fragment[0:int(len(a)/2)]
     #k_i = m.update(L_i) 
     decrypt_fragment = des.decrypt(cipher_fragment)
 
@@ -77,5 +80,3 @@ for plain_fragment in ([b[i:i+8] for i in range(0, len(b), 8)]):
 #    reader = csv.reader(File,delimiter=',')
 #    for row in reader:
 #        print(row)
-   
-
