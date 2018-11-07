@@ -23,14 +23,21 @@ k_1 = os.urandom(8)
 ##store k1 and k2 in a csv file
 #keys = [binascii.hexlify(k_1),binascii.hexlify(k_2)]
 keys = [k_1.hex(),k_2.hex()]
-myFile = open('example2.csv', 'w', newline='')
+myFile = open('keysandsi.csv', 'w', newline='')
 with myFile:
     writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(keys)
 
+#s_i = os.urandom(8)
+    
 for plain_fragment in ([a[i:i+8] for i in range(0, len(a), 8)]):
-    s_i = os.urandom(8)
-    #print (plain_fragment)
+    s_i = os.urandom(8)    
+    s_i_entry = [s_i.hex()]
+    myFile = open('keysandsi.csv', 'a', newline='')
+    with myFile:
+        writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(s_i_entry)
+
     des = DES.new(k_2, DES.MODE_ECB)
     cipher_fragment = des.encrypt(plain_fragment)
     #print (len(cipher_fragment))
