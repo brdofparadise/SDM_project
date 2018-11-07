@@ -41,7 +41,7 @@ for plain_fragment in ([a[i:i+16] for i in range(0, len(a), 16)]):
     des = DES.new(k_2, DES.MODE_ECB)
     cipher_fragment = des.encrypt(plain_fragment)
     #print (len(cipher_fragment))
-    L_i = cipher_fragment[0:int(len(a)/2)]
+    L_i = cipher_fragment[0:8]
     #k_i = m.update(L_i) 
     decrypt_fragment = des.decrypt(cipher_fragment)
 
