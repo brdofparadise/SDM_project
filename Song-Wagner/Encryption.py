@@ -81,7 +81,22 @@ for plain_fragment in ([a[i:i+16] for i in range(0, len(a), 16)]):
     T_i = T_i.hex()	
     C_i = hex(int(cipher_fragment, 16) ^ int(T_i, 16))
     print ("Final Ci", C_i)
-   
+
+    Ciphers = [C_i]
+
+    myFile = open('c_i.csv', 'a', newline='')
+    with myFile:
+        writer = csv.writer(myFile, delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        writer.writerow(Ciphers)   
+
+# keys = [k_1.hex(),k_2.hex()]
+# myFile = open('keysandsi.csv', 'w', newline='')
+# with myFile:
+#     writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+#     writer.writerow(keys)
+
+
+
 #Read the keys from csv file
 #with open('example2.csv', newline='') as File:  
 #    reader = csv.reader(File,delimiter=',')
