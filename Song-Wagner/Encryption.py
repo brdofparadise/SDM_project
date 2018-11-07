@@ -30,7 +30,7 @@ with myFile:
 
 #s_i = os.urandom(8)
     
-for plain_fragment in ([a[i:i+8] for i in range(0, len(a), 8)]):
+for plain_fragment in ([a[i:i+16] for i in range(0, len(a), 16)]):
     s_i = os.urandom(8)    
     s_i_entry = [s_i.hex()]
     myFile = open('keysandsi.csv', 'a', newline='')
