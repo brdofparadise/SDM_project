@@ -98,8 +98,8 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
 
 #Bob, for each C_p
     X_j = X_j.hex() 
-    T_p = hex(int(X_j, 16) ^ int(C_p, 16))[2:]
-
+    T_p = (hex(int(X_j, 16) ^ int(C_p, 16))).zfill(32)[2:]
+    T_p = T_p.zfill(32)
     print ("T_p",T_p)
     S_p = T_p[0:16]
     S_p_bar = T_p[16:32]
@@ -122,6 +122,8 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
     C_pl = C_p[0:16]
     X_pl = hex(int(C_pl, 16) ^ int(S_p, 16))[2:]
 
+    print ("ErrorMarker", X_pl)
+    X_pl = X_pl.zfill(16)
     des = DES.new(k_1, DES.MODE_CBC,iv)
     k_p = des.encrypt(bytes.fromhex(X_pl))
 
@@ -134,7 +136,7 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
 
     X_p = hex(int(C_p, 16) ^ int(T_p, 16))[2:]
     print ("X_p in retrieval is", X_p)
-
+    X_p = X_p.zfill(32)
     des = DES.new(k_2, DES.MODE_ECB)
     W_p = des.decrypt(bytes.fromhex(X_p))
     print("Retireved Frag",W_p.hex())
