@@ -1,3 +1,4 @@
+#server
 # -*- coding: utf-8 -*-
 """
 Created on Tue Oct 23 12:49:12 2018
@@ -7,6 +8,7 @@ Created on Tue Oct 23 12:49:12 2018
 #Source https://pymotw.com/2/socket/tcp.html
 import socket
 import sys
+import time
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,9 +30,23 @@ while True:
     try:
         print (sys.stderr, 'connection from', client_address)
 
-        # Receive the data in small chunks and retransmit it
-        data = connection.recv(16)
+        # Receive the data
+        data = connection.recv(32)
         print (sys.stderr, 'received "%s"' % data)
+        if data:
+            message = "Hello from server"
+            print (sys.stderr, 'sending %s' % message)
+            
+            connection.sendall(message.encode('utf-8'))
+        
+        
+        time.sleep(.300)
+        data2 = connection.recv(32)
+        print (sys.stderr, 'received "%s"' % data)
+        if data2:
+            message = "Hello 2 from server"
+            print (sys.stderr, 'sending %s' % message)
+            connection.sendall(message.encode('utf-8'))
 #        while True:
 #            data = connection.recv(16)
 #            print (sys.stderr, 'received "%s"' % data)
