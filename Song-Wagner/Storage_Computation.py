@@ -22,6 +22,7 @@ sock.connect(server_address)
 
 
 a_bc = os.urandom(32)                           # Generated 16 byte Plain Text Block
+a_bc = b'tJ\x100\nI\xa9\x96P\x10\x88\xfe-q\xa8\xbf\x92\x7f\xd3\xc0\xb0y}\x9c\xc1{+\x84\n\xd6Q\x94'
 print ("full PT",a_bc)
 a_hex=a_bc.hex()
 # w_i = a_bc.hex()[0:32]                          # w_i of length n 
@@ -87,15 +88,15 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
     X_i = X_i.hex() 
     C_i = hex(int(X_i, 16) ^ int(T_i, 16))[2:]
     print ("C_i",C_i)
+    C_T = C_T + C_i
 
 
 
-
-
+print("Complete CT ",C_T)
 
 try:    
     # Send data
-    message = C_i
+    message = C_T
     print (sys.stderr, 'sending "%s"' % message)
     #sock.sendall(message)
     server_address = 'localhost'

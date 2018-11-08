@@ -23,3 +23,9 @@ with open('keysandsi.csv', newline='') as File:
     #     # k_2 = row[1]
     #     print (k_1)
     #     # print (k_2)
+
+with open('cipher_text.csv', newline='') as File:  
+    reader = csv.reader(File,delimiter=',')
+    data = [row for row in reader]
+    C_T = data[0][0]
+    print (C_T)
