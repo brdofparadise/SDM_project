@@ -10,16 +10,16 @@ from Crypto import Random
 # n = 16
 # L_i = n-m = 8
 
-a_bc = os.urandom(32)							# Generated 16 byte Plain Text Block
+a_bc = os.urandom(32)                           # Generated 16 byte Plain Text Block
 print ("full PT",a_bc)
 a_hex=a_bc.hex()
-w_i = a_bc.hex()[0:32]							# w_i of length n 
+w_i = a_bc.hex()[0:32]                          # w_i of length n 
 print ("first 16 bytes ", w_i)
 w_i_bytecode = bytes.fromhex(w_i)
 print ("first 16 bytes ", w_i_bytecode)
 
 #Step 2
-k_2 = os.urandom(8)									#Getting the hash working
+k_2 = os.urandom(8)                                 #Getting the hash working
 k_1 = os.urandom(8)
 
 
@@ -74,7 +74,7 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
     T_i = s_i.hex() + F_k_i_s_i.hex()
     print ("T_I", T_i)
     
-    X_i = X_i.hex()	
+    X_i = X_i.hex() 
     C_i = hex(int(X_i, 16) ^ int(T_i, 16))[2:]
     print ("C_i",C_i)
 
@@ -86,7 +86,7 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
 #Step 1: Finding X_J
     des = DES.new(k_2, DES.MODE_ECB)
     X_j = des.encrypt(bytes.fromhex(plain_fragment))
-	
+    
     L_j = X_j.hex()[0:16]
     print("L_J_HEX",L_j)
 
@@ -97,7 +97,7 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
     C_p = C_i
 
 #Bob, for each C_p
-    X_j = X_j.hex()	
+    X_j = X_j.hex() 
     T_p = hex(int(X_j, 16) ^ int(C_p, 16))[2:]
 
     print ("T_p",T_p)
@@ -110,9 +110,36 @@ for plain_fragment in ([a_hex[i:i+32] for i in range(0, len(a_hex), 32)]):
  
     print ("S_p_bar from calc",S_p_bar)
     print ("S_p_bar from func",F_k_j_s_p.hex())
+
+
+
+
+# Starting Retrieval
+# Step 1 Asked to take C_p
+    #We have C_p and S_p already right now
+    # Find C_pl
+
+    C_pl = C_p[0:16]
+    X_pl = hex(int(C_pl, 16) ^ int(S_p, 16))[2:]
+
+    des = DES.new(k_1, DES.MODE_CBC,iv)
+    k_p = des.encrypt(bytes.fromhex(X_pl))
+
+    F_k = DES.new(k_p, DES.MODE_CBC,iv)
+    F_k_p_s_p = F_k.encrypt(bytes.fromhex(S_p))   
+
+    T_p = S_p + F_k_p_s_p.hex()
+    print ("T_p in retrieval is", T_p)
+
+
+    X_p = hex(int(C_p, 16) ^ int(T_p, 16))[2:]
+    print ("X_p in retrieval is", X_p)
+
+    des = DES.new(k_2, DES.MODE_ECB)
+    W_p = des.decrypt(bytes.fromhex(X_p))
+    print("Retireved Frag",W_p.hex())
     print("\n")
-
-
+    print("\n")
     ###First hash function to generate k_i
     ''''
     ###Compute hash from DES in CBC mode
