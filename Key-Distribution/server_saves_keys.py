@@ -46,37 +46,42 @@ while True:
 
     try:
         print(sys.stderr, 'connection from', addr)
-        data = recv_msg(conn)
-        print(sys.stderr, 'received "%s"' % data)
         data_received = 0
         write = 0
 
-        if data:
-            print("Im in the if data.")
-            if data_received % 2 == 0:
-                client_id = data
-                data_received = data_received + 1
-                write = 0
-                print("Received one piece of data.")
-            else:
-                client_pk = data
-                data_received = data_received + 1
-                write = 1
-                print("Received 2 pieces of data.")
+        while True:
+            data = recv_msg(conn)
+            # data = conn.recv(2048)
+            print(sys.stderr, 'received "%s"' % data)
 
-            if write == 1:
-                print("Writing to file.")
-                # write cID and keys to csv file
-                clients_id_pk_file = open('clients_id_pk.csv', 'w', newline='')
-                with clients_id_pk_file :
-                    writer = csv.writer(clients_id_pk_file, delimiter=',', quotechar='|',
-                                        quoting=csv.QUOTE_MINIMAL)
-                    writer.writerow([client_id, client_pk])
-        else:
-            print(sys.stderr, 'no more data from', addr)
-            break
+            if data:
+                print("Im in the if data.")
+                if data_received % 2 == 0:
+                    client_id = data
+                    data_received = data_received + 1
+                    write = 0
+                    print("Received one piece of data.")
+                else:
+                    client_pk = data
+                    data_received = data_received + 1
+                    write = 1
+                    print("Received 2 pieces of data.")
+
+                if write == 1:
+                    print("Writing to file.")
+                    # write cID and keys to csv file
+                    clients_id_pk_file = open('clients_id_pk.csv', 'w', newline='')
+                    with clients_id_pk_file :
+                        writer = csv.writer(clients_id_pk_file, delimiter=',', quotechar='|',
+                                            quoting=csv.QUOTE_MINIMAL)
+                        writer.writerow([client_id, client_pk])
+                send_msg(conn, "yes".encode("utf-8"))
+            else:
+                print(sys.stderr, 'no more data from', addr)
+                break
     except socket.error:
         print("An error occurred.")
+        conn.close()
     finally:
         # Clean up the connection
         conn.close()

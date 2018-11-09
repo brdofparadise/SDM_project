@@ -1,6 +1,7 @@
 import socket
 import sys
 import struct
+import csv
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_PSS
 from Crypto.Cipher import PKCS1_OAEP
@@ -20,6 +21,11 @@ class Consultant:
         private_key = new_key
         public_key = new_key.publickey()
 
+        print("private_key = ", private_key)
+        print("private_key type = ", type(private_key))
+        print("public_key = ", public_key)
+        print("public_key type = ", type(public_key))
+
         # In case we want to save the keys to files:
         private_key = new_key.exportKey("PEM")
         public_key = new_key.publickey().exportKey("PEM")
@@ -34,6 +40,22 @@ class Consultant:
         public_key_file.close()
 
         self.clients_dict[new_client_id] = (private_key, public_key)
+
+        # write cID and keys to csv file
+        clients_keys_file = open('clients_keys.csv', 'w', newline='')
+        with clients_keys_file:
+            writer = csv.writer(clients_keys_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow([new_client_id, private_key, public_key])
+
+        # write cID and public key to csv file
+        clients_keys_without_sk_file = open('clients_keys-sk.csv', 'w', newline='')
+        with clients_keys_without_sk_file:
+            writer = csv.writer(clients_keys_without_sk_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow([new_client_id, public_key])
+
+        print("cID = ", new_client_id)
+        print("private_key = ", private_key)
+        print("public_key = ", public_key)
 
         # returns the client ID and the keydata
         # private key: n, e, d, p, q, u

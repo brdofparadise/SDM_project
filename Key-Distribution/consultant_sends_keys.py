@@ -20,7 +20,7 @@ def recv_msg(s):
     return recvall(s, msglen)
 
 
-def recvall(self, s, n):
+def recvall(s, n):
     # Helper function to recv n bytes or return None if EOF is hit
     data = b''
     while len(data) < n:
@@ -43,9 +43,10 @@ try:
         for row in reader:
             print("sending first column")
             send_msg(s, row[0].encode("utf-8"))
-            time.sleep(1)
+            #s.sendall(row[0].encode("utf-8"))
             print("sending second column")
             send_msg(s, row[1].encode("utf-8"))
+            #s.sendall(row[1].encode("utf-8"))
             print("finished sending one row")
 except socket.error:
     print("An error has occurred.")
