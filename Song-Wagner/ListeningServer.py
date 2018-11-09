@@ -38,7 +38,9 @@ while True:
         print (sys.stderr, 'received "%s"' % data)
         #Received Cipher Text
         #store in a csv file
-        c_i_entry = [data]
+        print ("data",data)
+        print ("data_hex",data.decode("utf-8"))
+        c_i_entry = [data.decode("utf-8")]
         myFile = open('cipher_text.csv', 'w', newline='')
         with myFile:
             writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
@@ -57,12 +59,12 @@ while True:
         #X_J = data.split("~")[0]
         #k_j = data.split("~")[1]
         
-        C_T = None
-        with open('cipher_text.csv', newline='') as File:  
-            reader = csv.reader(File,delimiter=',')
-            data = [row for row in reader]
-            C_T = data[0][0]
-            print (C_T)
+        # C_T = None
+        # with open('cipher_text.csv', newline='') as File:  
+        #     reader = csv.reader(File,delimiter=',')
+        #     data = [row for row in reader]
+        #     C_T = data[0][0]
+        #     print (C_T)
         # if data2:
         #     message = "Hello 2 from server"
         #     print (sys.stderr, 'sending %s' % message)
