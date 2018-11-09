@@ -14,6 +14,17 @@ class Consultant:
     # Generate key pairs which can be used for signing and verifying (for the Client),
     # plus generate client id for new client
     def generate_keypair(self):
+
+        try:
+            with open("clients_keys.csv", "r") as f:
+                reader = csv.reader(f, delimiter=",")
+                data = list(reader)
+                row_count = len(data)
+                self.number_of_clients = row_count
+        except FileNotFoundError:
+            print("File doesn exist.")
+            self.number_of_clients = 0
+
         new_client_id = "CID" + str(self.number_of_clients)
         self.number_of_clients = self.number_of_clients + 1
 
@@ -21,12 +32,7 @@ class Consultant:
         private_key = new_key
         public_key = new_key.publickey()
 
-        print("private_key = ", private_key)
-        print("private_key type = ", type(private_key))
-        print("public_key = ", public_key)
-        print("public_key type = ", type(public_key))
-
-        # In case we want to save the keys to files:
+        # Save the keys to files:
         private_key = new_key.exportKey("PEM")
         public_key = new_key.publickey().exportKey("PEM")
         private_key_filename = "private_key_" + str(new_client_id) + ".pem"
@@ -42,16 +48,32 @@ class Consultant:
         self.clients_dict[new_client_id] = (private_key, public_key)
 
         # write cID and keys to csv file
-        clients_keys_file = open('clients_keys.csv', 'w', newline='')
-        with clients_keys_file:
-            writer = csv.writer(clients_keys_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow([new_client_id, private_key, public_key])
+        try:
+            with open('clients_keys.csv', 'r') as f:
+                with open('clients_keys.csv', 'a', newline='') as f:
+                    writer = csv.writer(f, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                    writer.writerow([new_client_id, new_key.n, new_key.e, new_key.d, new_key.p, new_key.q, new_key.u])
+        except FileNotFoundError:
+            print("File doesn't exist.")
+            print("Creating new file")
+            clients_keys_file = open('clients_keys.csv', 'w', newline='')
+            with clients_keys_file:
+                writer = csv.writer(clients_keys_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                writer.writerow([new_client_id, new_key.n, new_key.e, new_key.d, new_key.p, new_key.q, new_key.u])
 
         # write cID and public key to csv file
-        clients_keys_without_sk_file = open('clients_keys-sk.csv', 'w', newline='')
-        with clients_keys_without_sk_file:
-            writer = csv.writer(clients_keys_without_sk_file, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow([new_client_id, public_key])
+        try:
+            with open('clients_keys-sk.csv', 'a', newline='') as f:
+                writer = csv.writer(f, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                writer.writerow([new_client_id, new_key.n, new_key.e])
+        except FileNotFoundError:
+            print("File doesn't exist.")
+            print("Creating new file")
+            clients_keys_without_sk_file = open('clients_keys-sk.csv', 'w', newline='')
+            with clients_keys_without_sk_file:
+                writer = csv.writer(clients_keys_without_sk_file, delimiter=',', quotechar='|',
+                                    quoting=csv.QUOTE_MINIMAL)
+                writer.writerow([new_client_id, new_key.n, new_key.e])
 
         print("cID = ", new_client_id)
         print("private_key = ", private_key)
@@ -92,12 +114,6 @@ class Consultant:
 
         return private_key, public_key
 
-    def build_private_key(self, data_key):
-        private_key = data_key.construct
-        public_key = private_key.publickey()
-
-        return private_key, public_key
-
     # Sign message with private key
     def sign_message(self, private_key, message):
         h = SHA256.new(message)
@@ -130,13 +146,13 @@ class Consultant:
 
         return plaintext
 
+    # Prefix each message with a 4-byte length (network byte order)
     def send_msg(self, conn, msg):
-        # Prefix each message with a 4-byte length (network byte order)
         msg = struct.pack('>I', len(msg)) + msg
         conn.sendall(msg)
 
+    # Read message length and unpack it into an integer
     def recv_msg(self, conn):
-        # Read message length and unpack it into an integer
         raw_msglen = self.recvall(conn, 4)
         if not raw_msglen:
             return None
@@ -144,8 +160,8 @@ class Consultant:
         # Read the message data
         return self.recvall(conn, msglen)
 
+    # Helper function to recv n bytes or return None if EOF is hit
     def recvall(self, conn, n):
-        # Helper function to recv n bytes or return None if EOF is hit
         data = b''
         while len(data) < n:
             packet = conn.recv(n - len(data))
@@ -154,6 +170,7 @@ class Consultant:
             data += packet
         return data
 
+    # Distribute the new keypair to the client
     def distribute_keys_client(self, host, port, private_key_consultant):
         # create an INET, STREAMing socket
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

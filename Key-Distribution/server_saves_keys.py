@@ -1,18 +1,16 @@
-#!/usr/bin/env python3
 import socket
 import struct
 import sys
 import csv
 
 
+# Prefix each message with a 4-byte length (network byte order)
 def send_msg(s, msg):
-    # Prefix each message with a 4-byte length (network byte order)
     msg = struct.pack('>I', len(msg)) + msg
     s.sendall(msg)
 
-
+# Read message length and unpack it into an integer
 def recv_msg(s):
-    # Read message length and unpack it into an integer
     raw_msglen = recvall(s, 4)
     if not raw_msglen:
         return None
@@ -20,9 +18,8 @@ def recv_msg(s):
     # Read the message data
     return recvall(s, msglen)
 
-
+# Helper function to recv n bytes or return None if EOF is hit
 def recvall(s, n):
-    # Helper function to recv n bytes or return None if EOF is hit
     data = b''
     while len(data) < n:
         packet = s.recv(n - len(data))
@@ -51,31 +48,39 @@ while True:
 
         while True:
             data = recv_msg(conn)
-            # data = conn.recv(2048)
             print(sys.stderr, 'received "%s"' % data)
 
             if data:
                 print("Im in the if data.")
-                if data_received % 2 == 0:
+                data_received = data_received + 1
+                if data_received % 3 != 0:
                     client_id = data
-                    data_received = data_received + 1
                     write = 0
-                    print("Received one piece of data.")
+                    print("Received cID.")
+                elif data_received % 3 == 1:
+                    client_pk_n = data
+                    write = 0
+                    print("Received keydata n.")
                 else:
-                    client_pk = data
-                    data_received = data_received + 1
+                    client_pk_e = data
                     write = 1
-                    print("Received 2 pieces of data.")
+                    print("Received keydata e.")
 
                 if write == 1:
                     print("Writing to file.")
                     # write cID and keys to csv file
-                    clients_id_pk_file = open('clients_id_pk.csv', 'w', newline='')
-                    with clients_id_pk_file :
-                        writer = csv.writer(clients_id_pk_file, delimiter=',', quotechar='|',
-                                            quoting=csv.QUOTE_MINIMAL)
-                        writer.writerow([client_id, client_pk])
-                send_msg(conn, "yes".encode("utf-8"))
+                    try:
+                        with open('clients_id_pk.csv', 'a', newline='') as f:
+                            writer = csv.writer(f, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+                            writer.writerow([client_id, client_pk_n, client_pk_e])
+                    except FileNotFoundError:
+                        print("File doesn't exist.")
+                        print("Creating new file")
+                        clients_keys_without_sk_file = open('clients_id_pk.csv', 'w', newline='')
+                        with clients_keys_without_sk_file:
+                            writer = csv.writer(clients_keys_without_sk_file, delimiter=',', quotechar='|',
+                                                quoting=csv.QUOTE_MINIMAL)
+                            writer.writerow([client_id, client_pk_n, client_pk_e])
             else:
                 print(sys.stderr, 'no more data from', addr)
                 break

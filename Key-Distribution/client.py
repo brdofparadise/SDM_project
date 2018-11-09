@@ -17,19 +17,13 @@ class Client:
         # In case we want to save the keys to files:
         private_key = new_key.exportKey("PEM")
         public_key = new_key.publickey().exportKey("PEM")
-        private_key_file = open("private_key.pem", "wb")
+        private_key_file = open("private_key_client.pem", "wb")
         private_key_file.write(private_key)
         private_key_file.close()
 
-        public_key_file = open("public_key.pem", "wb")
+        public_key_file = open("public_key_client.pem", "wb")
         public_key_file.write(public_key)
         public_key_file.close()
-
-        return private_key, public_key
-
-    def build_keys(self, data_key):
-        private_key = data_key.construct
-        public_key = private_key.publickey()
 
         return private_key, public_key
 
@@ -65,13 +59,13 @@ class Client:
 
         return plaintext
 
+    # Prefix each message with a 4-byte length (network byte order)
     def send_msg(self, s, msg):
-        # Prefix each message with a 4-byte length (network byte order)
         msg = struct.pack('>I', len(msg)) + msg
         s.sendall(msg)
 
+    # Read message length and unpack it into an integer
     def recv_msg(self, s):
-        # Read message length and unpack it into an integer
         raw_msglen = self.recvall(s, 4)
         if not raw_msglen:
             return None
@@ -79,8 +73,8 @@ class Client:
         # Read the message data
         return self.recvall(s, msglen)
 
+    # Helper function to recv n bytes or return None if EOF is hit
     def recvall(self, s, n):
-        # Helper function to recv n bytes or return None if EOF is hit
         data = b''
         while len(data) < n:
             packet = s.recv(n - len(data))
@@ -161,7 +155,7 @@ class Client:
 if __name__ == "__main__":
     a = Client()
     private_key_client, public_key_client = a.generate_keypair_pke()
-    private_key_client = RSA.importKey(open('private_key.pem', 'r').read())
+    private_key_client = RSA.importKey(open('private_key_client.pem', 'r').read())
     pk_consultant = RSA.importKey(open('public_key_consultant.pem', 'r').read())
 
     client_id, private_key, public_key = a.connect_to_server("127.0.0.1", 10000, public_key_client, pk_consultant, private_key_client)
