@@ -41,11 +41,11 @@ try:
         reader = csv.reader(File,delimiter=',')
         for row in reader:
             print("sending cID")
-            send_msg(s, row[0].encode("utf-8")).encode("utf-8")
+            send_msg(s, row[0].encode("utf-8"))
             print("sending public_key_n")
-            send_msg(s, row[1].encode("utf-8")).encode("utf-8")
+            send_msg(s, row[1].encode("utf-8"))
             print("sending public_key_e")
-            send_msg(s, row[2].encode("utf-8")).encode("utf-8")
+            send_msg(s, row[2].encode("utf-8"))
             print("finished sending one row")
 except socket.error:
     print("An error has occurred.")

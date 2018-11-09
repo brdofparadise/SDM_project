@@ -45,6 +45,9 @@ while True:
         print(sys.stderr, 'connection from', addr)
         data_received = 0
         write = 0
+        client_id = 0
+        public_key_n = 0
+        public_key_e = 0
 
         while True:
             data = recv_msg(conn)
@@ -53,11 +56,11 @@ while True:
             if data:
                 print("Im in the if data.")
                 data_received = data_received + 1
-                if data_received % 3 != 0:
+                if data_received % 3 == 1:
                     client_id = data
                     write = 0
                     print("Received cID.")
-                elif data_received % 3 == 1:
+                elif data_received % 3 == 2:
                     client_pk_n = data
                     write = 0
                     print("Received keydata n.")
@@ -72,7 +75,7 @@ while True:
                     try:
                         with open('clients_id_pk.csv', 'a', newline='') as f:
                             writer = csv.writer(f, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-                            writer.writerow([client_id, client_pk_n, client_pk_e])
+                            writer.writerow([client_id.decode("utf-8"), client_pk_n.decode("utf-8"), client_pk_e.decode("utf-8")])
                     except FileNotFoundError:
                         print("File doesn't exist.")
                         print("Creating new file")
@@ -80,7 +83,7 @@ while True:
                         with clients_keys_without_sk_file:
                             writer = csv.writer(clients_keys_without_sk_file, delimiter=',', quotechar='|',
                                                 quoting=csv.QUOTE_MINIMAL)
-                            writer.writerow([client_id, client_pk_n, client_pk_e])
+                            writer.writerow([client_id.decode("utf-8"), client_pk_n.decode("utf-8"), client_pk_e.decode("utf-8")])
             else:
                 print(sys.stderr, 'no more data from', addr)
                 break
