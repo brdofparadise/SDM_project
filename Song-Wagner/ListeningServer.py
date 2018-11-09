@@ -1,17 +1,32 @@
-# ListeningServer.py
-
-#server
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Oct 23 12:49:12 2018
-
-@author: sande
-"""
-#Source https://pymotw.com/2/socket/tcp.html
 import socket
 import sys
 import time
 import csv
+import socket
+import sys
+import struct
+import csv
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_PSS
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.Hash import SHA256
+
+def sign_message(private_key, message):
+    h = SHA256.new(message)
+    signer = PKCS1_PSS.new(private_key)
+    signature = signer.sign(h)
+
+    return signature
+
+# Verify signature with public key
+def verify_signature(public_key, signature, h):
+    verifier = PKCS1_PSS.new(public_key)
+    if verifier.verify(h, signature):
+        print("Signature valid :)")
+        return True
+    else:
+        print("Signature invalid :(")
+        return False
 
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -31,31 +46,47 @@ while True:
     connection, client_address = sock.accept()
     
     try:
-        print (sys.stderr, 'connection from', client_address)
 
-        # Receive the data
-        data = connection.recv(100)
-        print (sys.stderr, 'received "%s"' % data)
-        #Received Cipher Text
-        #store in a csv file
-        print ("data",data)
-        print ("data_hex",data.decode("utf-8"))
-        c_i_entry = [data.decode("utf-8")]
-        myFile = open('cipher_text.csv', 'w', newline='')
-        with myFile:
-            writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(c_i_entry)
-        # if data:
-        #     message = "Hello from server"
-        #     print (sys.stderr, 'sending %s' % message)
-            
-        #     connection.sendall(message.encode('utf-8'))
+        data = connection.recv(2000)
+        data_hex = data.decode("utf-8")
+        c_t = data_hex.split(",")[0]
+        c_id = data_hex.split(",")[1]
+        sign_CT = bytes.fromhex(data_hex.split(",")[2])
+        # sign_CT = bytes((data_hex.split(",b")[1]), 'utf-8')
+        print("c_id",int(c_id))
+
+        with open('clients_id_pk.csv', 'r') as f:
+            reader = csv.reader(f, delimiter=',')
+            data = list(reader)
+            public_key_n = int(data[int(c_id)][1])
+            public_key_e = int(data[int(c_id)][2])
+
+            print("PublicKey n",public_key_n)
+            print("PUBLIC e",public_key_e)            
+
+        data_key = [public_key_n, public_key_e]
+        public_key = RSA.construct(data_key)
+
+        print("CT HERE", c_t.encode("utf-8"),type(c_t.encode("utf-8")))
+        print("PK non wokring", public_key,type(public_key))
+        print("Sign",sign_CT,type(sign_CT))
+
+
+        verify_signature(public_key,sign_CT,SHA256.new(c_t.encode("utf-8")))
+        # print ("data_hex",data.decode("utf-8"))
+        # c_i_entry = [data.decode("utf-8")]
+        # myFile = open('cipher_text.csv', 'w', newline='')
+        # with myFile:
+        #     writer = csv.writer(myFile,delimiter=',',quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        #     writer.writerow(c_i_entry)
         
+        # time.sleep(.300)
+        # data2 = connection.recv(32)
+        # print (sys.stderr, 'received  "%s"' % data)
         
-        time.sleep(.300)
+
+
         #receive Xj and Kj which is a search token 
-        data2 = connection.recv(32)
-        print (sys.stderr, 'received  "%s"' % data)
         #X_J = data.split("~")[0]
         #k_j = data.split("~")[1]
         
