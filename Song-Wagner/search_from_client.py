@@ -1,24 +1,40 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Nov  8 13:07:38 2018
-
-@author: sande
-"""
-
-#client
-import socket
 import sys
-import time
-from Crypto.Cipher import DES
 import csv
+import time
+import socket
+import os
+import hmac
+import struct
+import binascii
+from Crypto import Random
+from Crypto.Hash import SHA256
+from Crypto.Cipher import DES
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_PSS
+
 # Create a TCP/IP socket
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Connect the socket to the port where the server is listening
 server_address = ('localhost', 10001)
 
-#print (sys.stderr, 'connecting to %s port %s' % server_address)
 sock.connect(server_address)
+
+def sign_message(private_key, message):
+    h = SHA256.new(message)
+    signer = PKCS1_PSS.new(private_key)
+    signature = signer.sign(h)
+
+    return signature
+
+sk_consultant = RSA.importKey(open('private_key_CID0.pem', 'r').read())
+pk_consultant = RSA.importKey(open('public_key_CID0.pem', 'r').read())
+
+print("This portion of the code allows search functionality.")
+print("The user is allowed to search the plaintext which had been previously uploaded to the server")
+print("For demonstration purposes, we have hard-coded the value to be searched for")
+
 plain_fragment = hex(int("744a10300a49a996501088fe2d71a8bf",16))
 plain_fragment = plain_fragment[2:]
 
@@ -31,50 +47,48 @@ with open('keysandsi.csv', newline='') as File:
 
     k_1 = bytes.fromhex(k_1)
     k_2 = bytes.fromhex(k_2)
-    print (k_1)
-    print (k_2)
+
 des = DES.new(k_2, DES.MODE_ECB)
 X_j = des.encrypt(bytes.fromhex(plain_fragment))
-    
 L_j = X_j.hex()[0:16]
-print("L_J_HEX",L_j)
+
+
 iv = b'\xbb\xa8\xff\x02{\xa7\xd9\xbf'
 des = DES.new(k_1, DES.MODE_CBC,iv)
 k_j = (des.encrypt(bytes.fromhex(L_j))).hex()
 X_j = X_j.hex()
 
-print (X_j)
-print("Alice sends X_j and K_J to bob")
+sign_XJ = str(sign_message(sk_consultant,X_j.encode("utf-8")).hex())
+print("\n")
+print ("Signature Sent",sign_XJ,type(sign_XJ))
+print("Digest",X_j.encode("utf-8"),type(X_j.encode("utf-8")))
 
 try:    
-    # Send X_j and k_j
-    message = X_j + "," + k_j
-    print (sys.stderr, 'sending "%s"' % message)
-    #sock.sendall(message)
+    message = X_j + "," + k_j + "," + sign_XJ
     server_address = 'localhost'
     sock.sendto(message.encode('utf-8'), (server_address, 10001))
 
-    # Look for the response
-    data = sock.recv(64)
-    print (sys.stderr, 'received matching cipher text back "%s"' % data)
+    data = sock.recv(2000)
     data = data.decode("utf-8")
     position = data.split(",")[0]
     C_p = data.split(',')[1]
-    print ("position ", position)
-    print ("C_p ", C_p)
+    print ("Position of Query Keyword ", position)
+    print ("Returned Cipher Block ", C_p)
 
-    #Retrieval
+    print("\n")
+    print("This portion of the code implements the Retrieval Functionality. ")
+    print("It takes the position and cipher fragment returned and attempts to compute the correspoding plaintext")
+
+
     position = int(position)
     with open('keysandsi.csv', newline='') as File:  
         reader = csv.reader(File,delimiter=',')
         data = [row for row in reader]
         S_p = data[position][0]
 
-    #S_p = bytes.fromhex(S_p)
     C_pl = C_p[0:16]
     X_pl = hex(int(C_pl, 16) ^ int(S_p, 16))[2:]
 
-    print ("ErrorMarker", X_pl)
     X_pl = X_pl.zfill(16)
     des = DES.new(k_1, DES.MODE_CBC,iv)
     k_p = des.encrypt(bytes.fromhex(X_pl))
@@ -91,22 +105,9 @@ try:
     X_p = X_p.zfill(32)
     des = DES.new(k_2, DES.MODE_ECB)
     W_p = des.decrypt(bytes.fromhex(X_p))
-    print("Retireved Frag",W_p.hex())
+    print("Retireved Plaintext Fragment",W_p.hex())
     print("\n")
     print("\n")
-#    #sleep for few milliseconds before sending the next message
-#    time.sleep(.500)
-#    message2 = "Hello 2 from client 46c6bcc81a962693497b0ac79762cdfe"
-#    print (sys.stderr, 'sending "%s"' % message2)
-#    #sock.sendall(message.encode('utf-8'))
-#    sock.sendto(message2.encode('utf-8'), (server_address, 10001))
-#
-#    data = sock.recv(64)
-#    print (sys.stderr, 'received "%s"' % data)
-#    while amount_received < amount_expected:print ("position ", position)
-#        data = sock.recv(16)
-#        amount_received += len(data)
-#        print (sys.stderr, 'received "%s"' % data)
 
 finally:
     print (sys.stderr, 'closing socket')
