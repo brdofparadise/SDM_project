@@ -35,7 +35,11 @@ print("This portion of the code allows search functionality.")
 print("The user is allowed to search the plaintext which had been previously uploaded to the server")
 print("For demonstration purposes, we have hard-coded the value to be searched for")
 
-plain_fragment = hex(int("744a10300a49a996501088fe2d71a8bf",16))
+message_queried = input("Enter date to be searched in DDMMYYYY ")
+message_queried = "{:1^32s}".format(message_queried)
+plain_fragment = hex(int(message_queried,16))
+#11111111111111122018111111111111
+#744a10300a49a996501088fe2d71a8bf
 plain_fragment = plain_fragment[2:]
 
 k_1,k_2 = None, None
@@ -60,8 +64,9 @@ X_j = X_j.hex()
 
 sign_XJ = str(sign_message(sk_consultant,X_j.encode("utf-8")).hex())
 print("\n")
-print ("Signature Sent",sign_XJ,type(sign_XJ))
-print("Digest",X_j.encode("utf-8"),type(X_j.encode("utf-8")))
+#print ("Signature Sent",sign_XJ,type(sign_XJ))
+#print ("Signature Sent",sign_XJ,type(sign_XJ))
+#print("Digest",X_j.encode("utf-8"),type(X_j.encode("utf-8")))
 
 try:    
     message = X_j + "," + k_j + "," + sign_XJ
@@ -97,11 +102,11 @@ try:
     F_k_p_s_p = F_k.encrypt(bytes.fromhex(S_p))   
 
     T_p = S_p + F_k_p_s_p.hex()
-    print ("T_p in retrieval is", T_p)
+    #print ("T_p in retrieval is", T_p)
 
 
     X_p = hex(int(C_p, 16) ^ int(T_p, 16))[2:]
-    print ("X_p in retrieval is", X_p)
+    #print ("X_p in retrieval is", X_p)
     X_p = X_p.zfill(32)
     des = DES.new(k_2, DES.MODE_ECB)
     W_p = des.decrypt(bytes.fromhex(X_p))

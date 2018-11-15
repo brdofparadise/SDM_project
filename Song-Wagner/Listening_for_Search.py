@@ -67,8 +67,8 @@ while True:
         public_key = RSA.construct(data_key)
 
         print("\n")
-        print ("Signature Rxed",sign_CT,type(sign_CT))
-        print("Digest",X_j.encode("utf-8"),type(X_j.encode("utf-8")))
+        #print ("Signature Rxed",sign_CT,type(sign_CT))
+        #print("Digest",X_j.encode("utf-8"),type(X_j.encode("utf-8")))
 
         with open('cipher_text.csv', newline='') as File:  
             reader = csv.reader(File,delimiter=',')
@@ -83,23 +83,23 @@ while True:
         for C_p in ([C_T[i:i+32] for i in range(0, len(C_T), 32)]):
                 counter_position  = counter_position + 1
                 T_p = ((hex(int(X_j, 16) ^ int(C_p, 16)))[2:]).zfill(32)
-                print ("T_p",T_p)
+                #print ("T_p",T_p)
                 S_p = T_p[0:16]
                 S_p_bar = T_p[16:32]
                 F_k = DES.new(bytes.fromhex(k_j), DES.MODE_CBC,iv)
                 F_k_j_s_p = F_k.encrypt(bytes.fromhex(S_p))
-                print ("S_p_bar calculated from T_p",S_p_bar)
-                print ("S_p_bar calucated from S_p",F_k_j_s_p.hex())
+                #print ("S_p_bar calculated from T_p",S_p_bar)
+                #print ("S_p_bar calucated from S_p",F_k_j_s_p.hex())
 
                 if(S_p_bar==F_k_j_s_p.hex()):
-                    print(" Valid Match has been found.")
+                    print(" **************Valid Match has been found.*******************")
                     print (" Sending cipher block and it's corresponding position")
                     message = str(counter_position) + "," + C_p
                     # print (sys.stderr, 'sending "%s"' % message)
                     server_address = 'localhost'
                     connection.sendall(message.encode('utf-8'))
                 else:
-                    print("No match has been found. Try again")
+                    print("********No match has been found. Try again*****")
 
                 print("\n Trying Next Block")
             

@@ -32,9 +32,20 @@ sock.connect(server_address)
 
 C_ID = "1"
 
-a_bc = os.urandom(32)                           
-a_bc = b'tJ\x100\nI\xa9\x96P\x10\x88\xfe-q\xa8\xbf\x92\x7f\xd3\xc0\xb0y}\x9c\xc1{+\x84\n\xd6Q\x94'
-a_hex=a_bc.hex()
+#a_bc = os.urandom(32)    
+
+                       
+message = "11122018"
+message2 = "11122019"
+#a_bc = b'tJ\x100\nI\xa9\x96P\x10\x88\xfe-q\xa8\xbf\x92\x7f\xd3\xc0\xb0y}\x9c\xc1{+\x84\n\xd6Q\x94'
+#a_hex=a_bc.hex()
+message3 = input("Enter date to be inserted in DDMMYYYY ")
+a_hex = "{:1^32s}".format(message)
+
+a_hex = a_hex + "{:1^32s}".format(message2)
+a_hex = a_hex + "{:1^32s}".format(message3)
+print ("message3 appended is ","{:1^32s}".format(message3))
+a_bc = bytes.fromhex(a_hex)
 
 #Step 2
 k_2 = os.urandom(8)                                 
